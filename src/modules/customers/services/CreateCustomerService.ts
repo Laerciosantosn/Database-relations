@@ -32,7 +32,6 @@ class CreateCustomerService {
     });
 
     return customer;
-    // TODO
   }
 }
 
