@@ -35,7 +35,7 @@ class CreateProductService {
       quantity,
     });
 
-    console.log(product);
+    // console.log(product);
     return product;
   }
 }

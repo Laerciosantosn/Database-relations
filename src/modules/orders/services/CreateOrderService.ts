@@ -37,20 +37,27 @@ class CreateOrderService {
       throw new AppError('Customer id not found');
     }
 
-    const findProduct = products.map(async () =>
-      this.productsRepository.findAllById(products),
-    );
+    const findAllProduct = await this.productsRepository.findAllById(products);
+
+    const findProduct = findAllProduct.map(product => {
+      const productOrder = {
+        product_id: product.id,
+        price: Number(product.price),
+        quantity: Number(product.quantity),
+      };
+      return productOrder;
+    });
 
     if (!findProduct) {
       throw new AppError('product not found');
     }
-    const productX = [...findProduct]
 
-    // const oderProducts = await this.ordersRepository.create({
-    //   customer: findCustomer,
-    //   products:
-    // });
-    // TODO
+    const oderProducts = await this.ordersRepository.create({
+      customer: findCustomer,
+      products: findProduct,
+    });
+
+    return oderProducts;
   }
 }
 
