@@ -22,7 +22,7 @@ export default class CreateOrderProducts1593644790030
           },
           {
             name: 'quantity',
-            type: 'numeric',
+            type: 'int',
           },
           {
             name: 'order_id',

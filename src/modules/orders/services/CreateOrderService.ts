@@ -31,33 +31,42 @@ class CreateOrderService {
   ) {}
 
   public async execute({ customer_id, products }: IRequest): Promise<Order> {
-    const findCustomer = await this.customersRepository.findById(customer_id);
+    const customer = await this.customersRepository.findById(customer_id);
 
-    if (!findCustomer) {
+    if (!customer) {
       throw new AppError('Customer id not found');
     }
 
-    const findAllProduct = await this.productsRepository.findAllById(products);
+    const findProductPrice = await this.productsRepository.findAllById(
+      products.map(product => ({ id: product.id })),
+    );
 
-    const findProduct = findAllProduct.map(product => {
-      const productOrder = {
-        product_id: product.id,
-        price: Number(product.price),
-        quantity: Number(product.quantity),
-      };
-      return productOrder;
-    });
-
-    if (!findProduct) {
-      throw new AppError('product not found');
+    if (products.length !== findProductPrice.length) {
+      throw new AppError('Product not found');
     }
 
-    const oderProducts = await this.ordersRepository.create({
-      customer: findCustomer,
-      products: findProduct,
+    products.forEach(product => {
+      const productQuantity = findProductPrice.find(
+        ({ id }) => id === product.id,
+      )?.quantity;
+
+      if ((productQuantity || 0) < product.quantity) {
+        throw new AppError('invalid Quantity');
+      }
     });
 
-    return oderProducts;
+    const order = await this.ordersRepository.create({
+      customer,
+      products: products.map(product => ({
+        product_id: product.id,
+        price: findProductPrice.find(({ id }) => id === product.id)?.price || 0,
+        quantity: product.quantity,
+      })),
+    });
+
+    await this.productsRepository.updateQuantity(products);
+
+    return order;
   }
 }
 
